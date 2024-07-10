@@ -8,7 +8,7 @@ const LEADING_SEPARATORS = new RegExp('^' + SEPARATORS.source);
 const SEPARATORS_AND_IDENTIFIER = new RegExp(SEPARATORS.source + IDENTIFIER.source, 'gu');
 const NUMBERS_AND_IDENTIFIER = new RegExp('\\d+' + IDENTIFIER.source, 'gu');
 
-const preserveCamelCase = (string, toLowerCase, toUpperCase, preserveConsecutiveUppercase) => {
+const preserveCamelCase = (string, lowerCasedString, upperCasedString, preserveConsecutiveUppercase) => {
 	let isLastCharLower = false;
 	let isLastCharUpper = false;
 	let isLastLastCharUpper = false;
@@ -20,19 +20,23 @@ const preserveCamelCase = (string, toLowerCase, toUpperCase, preserveConsecutive
 
 		if (isLastCharLower && UPPERCASE.test(character)) {
 			string = string.slice(0, index) + '-' + string.slice(index);
+			lowerCasedString = lowerCasedString.slice(0, index) + '-' + lowerCasedString.slice(index);
+			upperCasedString = upperCasedString.slice(0, index) + '-' + upperCasedString.slice(index);
 			isLastCharLower = false;
 			isLastLastCharUpper = isLastCharUpper;
 			isLastCharUpper = true;
 			index++;
 		} else if (isLastCharUpper && isLastLastCharUpper && LOWERCASE.test(character) && (!isLastLastCharPreserved || preserveConsecutiveUppercase)) {
 			string = string.slice(0, index - 1) + '-' + string.slice(index - 1);
+			lowerCasedString = lowerCasedString.slice(0, index - 1) + '-' + lowerCasedString.slice(index - 1);
+			upperCasedString = upperCasedString.slice(0, index - 1) + '-' + upperCasedString.slice(index - 1);
 			isLastLastCharUpper = isLastCharUpper;
 			isLastCharUpper = false;
 			isLastCharLower = true;
 		} else {
-			isLastCharLower = toLowerCase(character) === character && toUpperCase(character) !== character;
+			isLastCharLower = lowerCasedString[index] === character && upperCasedString[index] !== character;
 			isLastLastCharUpper = isLastCharUpper;
-			isLastCharUpper = toUpperCase(character) === character && toLowerCase(character) !== character;
+			isLastCharUpper = upperCasedString[index] === character && lowerCasedString[index] !== character;
 		}
 	}
 
@@ -96,7 +100,7 @@ export default function camelCase(input, options) {
 	const hasUpperCase = input !== toLowerCase(input);
 
 	if (hasUpperCase) {
-		input = preserveCamelCase(input, toLowerCase, toUpperCase, options.preserveConsecutiveUppercase);
+		input = preserveCamelCase(input, toLowerCase(input), toUpperCase(input), options.preserveConsecutiveUppercase);
 	}
 
 	input = input.replace(LEADING_SEPARATORS, '');
